@@ -1,0 +1,705 @@
+{
+  "info": {
+    "_postman_id": "7b8f9a2e-4321-4f90-bc88-9d21124458ee",
+    "name": "TryFit Cloud Backend API",
+    "description": "Complete Postman testing suite for the TryFit centralized cloud backend service.\nIncludes endpoints for Profile, Wardrobe, Storage, Try-On Proxy, AI Match, Planner, Build My Week, Recent Picks, Coins, Subscriptions, and Notifications.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "test_user_uid_12345",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "0. System & Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Verify that the TryFit backend service is online."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Service is ONLINE\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.success).to.eql(true);",
+                  "    pm.expect(json.data.status).to.eql(\"ONLINE\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1. User Profile & Preferences",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile"]
+            }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sophia Reynolds\",\n  \"phone\": \"+1 (555) 789-0123\",\n  \"profileImage\": \"https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80\",\n  \"avatar\": \"avatar_sophia_01\",\n  \"onboardingStatus\": \"COMPLETED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile"]
+            }
+          }
+        },
+        {
+          "name": "Get Styling Preferences",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/profile/preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile", "preferences"]
+            }
+          }
+        },
+        {
+          "name": "Update Styling Preferences",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bodyFit\": {\n    \"height\": 172,\n    \"silhouette\": \"Hourglass\",\n    \"fit\": \"Tailored\",\n    \"proportions\": \"Balanced\",\n    \"topFit\": \"Fitted\",\n    \"bottomFit\": \"Wide Leg\"\n  },\n  \"aesthetic\": {\n    \"style\": \"Old Money Minimalist\",\n    \"vibes\": [\"Timeless\", \"Sophisticated\", \"Quiet Luxury\", \"Effortless\"],\n    \"stylingGoals\": [\"Build a versatile capsule wardrobe\", \"Elevate professional daily wear\"],\n    \"seasons\": [\"Autumn\", \"Spring\"]\n  },\n  \"palette\": {\n    \"undertone\": \"Warm\",\n    \"preferredColors\": [\"Camel\", \"Olive Green\", \"Cream\", \"Navy Blue\", \"Burgundy\", \"Espresso\"],\n    \"preferredFabrics\": [\"Cashmere\", \"Mulberry Silk\", \"Pure Linen\", \"Merino Wool\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/profile/preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile", "preferences"]
+            }
+          }
+        },
+        {
+          "name": "Get Profile Dynamic Statistics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/profile/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile", "stats"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Wardrobe (My Collection)",
+      "item": [
+        {
+          "name": "List Wardrobe Items",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/wardrobe",
+              "host": ["{{baseUrl}}"],
+              "path": ["wardrobe"]
+            }
+          }
+        },
+        {
+          "name": "List Wardrobe by Category (Tops)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/wardrobe?category=Tops",
+              "host": ["{{baseUrl}}"],
+              "path": ["wardrobe"],
+              "query": [{ "key": "category", "value": "Tops" }]
+            }
+          }
+        },
+        {
+          "name": "Add Wardrobe Item",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"wardrobe_top_01\",\n  \"category\": \"Tops\",\n  \"color\": \"Cream\",\n  \"style\": \"Silk Button-Down Shirt\",\n  \"brand\": \"Equipment\",\n  \"image\": \"https://images.unsplash.com/photo-1598033129183-c4f50c736f10?auto=format&fit=crop&w=600&q=80\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/wardrobe",
+              "host": ["{{baseUrl}}"],
+              "path": ["wardrobe"]
+            }
+          }
+        },
+        {
+          "name": "Get Wardrobe Item Details",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/wardrobe/wardrobe_top_01",
+              "host": ["{{baseUrl}}"],
+              "path": ["wardrobe", "wardrobe_top_01"]
+            }
+          }
+        },
+        {
+          "name": "Update Wardrobe Item",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"color\": \"Off-White / Ivory\",\n  \"brand\": \"Equipment Studio\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/wardrobe/wardrobe_top_01",
+              "host": ["{{baseUrl}}"],
+              "path": ["wardrobe", "wardrobe_top_01"]
+            }
+          }
+        },
+        {
+          "name": "Delete Wardrobe Item",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/wardrobe/wardrobe_top_01",
+              "host": ["{{baseUrl}}"],
+              "path": ["wardrobe", "wardrobe_top_01"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Storage & Image Upload",
+      "item": [
+        {
+          "name": "Upload Image to Firebase Storage",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "folder",
+                  "value": "wardrobe",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "description": "Select an image file (JPEG, PNG, WEBP max 10MB)",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/storage/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["storage", "upload"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Virtual Try-On Proxy",
+      "item": [
+        {
+          "name": "Execute Virtual Try-On (Charges 10 Coins)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Idempotency-Key", "value": "tryon_req_001" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"personImage\": \"https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80\",\n  \"clothingImage\": \"https://images.unsplash.com/photo-1598033129183-c4f50c736f10?auto=format&fit=crop&w=600&q=80\",\n  \"category\": \"upper_body\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/try-on",
+              "host": ["{{baseUrl}}"],
+              "path": ["try-on"]
+            }
+          }
+        },
+        {
+          "name": "Get Try-On Generation History",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/try-on/history",
+              "host": ["{{baseUrl}}"],
+              "path": ["try-on", "history"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. AI Match & AI Styled Looks",
+      "item": [
+        {
+          "name": "Calculate AI Match Score (Charges 5 Coins)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"personImage\": \"https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80\",\n  \"clothingImage\": \"https://images.unsplash.com/photo-1598033129183-c4f50c736f10?auto=format&fit=crop&w=600&q=80\",\n  \"clothingAttributes\": {\n    \"category\": \"Tops\",\n    \"color\": \"Cream\",\n    \"fit\": \"Fitted\",\n    \"style\": \"Old Money Minimalist\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/match",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "match"]
+            }
+          }
+        },
+        {
+          "name": "List AI Styled Looks",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/ai/styled-looks",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "styled-looks"]
+            }
+          }
+        },
+        {
+          "name": "Save AI Styled Look",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"look_autumn_capsule_01\",\n  \"title\": \"Weekend Riviera Style\",\n  \"imageUrl\": \"https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=600&q=80\",\n  \"sourceRecommendation\": \"rec_top_01_bottom_02\",\n  \"tags\": [\"Resort\", \"Linen\", \"Relaxed Chic\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/styled-looks",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "styled-looks"]
+            }
+          }
+        },
+        {
+          "name": "Get AI Styled Look by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/ai/styled-looks/look_autumn_capsule_01",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "styled-looks", "look_autumn_capsule_01"]
+            }
+          }
+        },
+        {
+          "name": "Delete AI Styled Look",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/ai/styled-looks/look_autumn_capsule_01",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "styled-looks", "look_autumn_capsule_01"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. For You Recommendations",
+      "item": [
+        {
+          "name": "Get Dynamic For You Recommendations",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/recommendations/for-you",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommendations", "for-you"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Planner & Build My Week",
+      "item": [
+        {
+          "name": "List Planner Entries",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/planner",
+              "host": ["{{baseUrl}}"],
+              "path": ["planner"]
+            }
+          }
+        },
+        {
+          "name": "Add or Update Planner Entry",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2026-10-15\",\n  \"imageRef\": \"https://images.unsplash.com/photo-1598033129183-c4f50c736f10?auto=format&fit=crop&w=600&q=80\",\n  \"outfitRef\": \"wardrobe_top_01\",\n  \"notes\": \"Keynote presentation & executive dinner\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/planner",
+              "host": ["{{baseUrl}}"],
+              "path": ["planner"]
+            }
+          }
+        },
+        {
+          "name": "Delete Planner Entry",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/planner/plan_2026-10-15_01",
+              "host": ["{{baseUrl}}"],
+              "path": ["planner", "plan_2026-10-15_01"]
+            }
+          }
+        },
+        {
+          "name": "Build My Week (7-Day Aggregation)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/planner/build-week",
+              "host": ["{{baseUrl}}"],
+              "path": ["planner", "build-week"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Recent Picks",
+      "item": [
+        {
+          "name": "Get Recent Picks (Max 10)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/recent-picks",
+              "host": ["{{baseUrl}}"],
+              "path": ["recent-picks"]
+            }
+          }
+        },
+        {
+          "name": "Record Recent Pick Interaction",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemType\": \"WARDROBE\",\n  \"itemId\": \"wardrobe_top_01\",\n  \"title\": \"Silk Button-Down Shirt\",\n  \"imageUrl\": \"https://images.unsplash.com/photo-1598033129183-c4f50c736f10?auto=format&fit=crop&w=600&q=80\",\n  \"metadata\": {\n    \"brand\": \"Equipment\",\n    \"category\": \"Tops\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recent-picks",
+              "host": ["{{baseUrl}}"],
+              "path": ["recent-picks"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Favorites",
+      "item": [
+        {
+          "name": "List Favorites",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/favorites",
+              "host": ["{{baseUrl}}"],
+              "path": ["favorites"]
+            }
+          }
+        },
+        {
+          "name": "Add Item to Favorites",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetType\": \"WARDROBE\",\n  \"targetId\": \"wardrobe_dress_01\",\n  \"itemData\": {\n    \"title\": \"Ribbed Knit Midi Column Dress\",\n    \"brand\": \"Reformation\",\n    \"image\": \"https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=600&q=80\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/favorites",
+              "host": ["{{baseUrl}}"],
+              "path": ["favorites"]
+            }
+          }
+        },
+        {
+          "name": "Remove Item from Favorites",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/favorites/fav_WARDROBE_wardrobe_dress_01",
+              "host": ["{{baseUrl}}"],
+              "path": ["favorites", "fav_WARDROBE_wardrobe_dress_01"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Coins & Ledger Economics",
+      "item": [
+        {
+          "name": "Get Authoritative Coin Balance",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/coins/balance",
+              "host": ["{{baseUrl}}"],
+              "path": ["coins", "balance"]
+            }
+          }
+        },
+        {
+          "name": "List Available Coin Packages",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/coins/packages",
+              "host": ["{{baseUrl}}"],
+              "path": ["coins", "packages"]
+            }
+          }
+        },
+        {
+          "name": "Get Coin Transaction Ledger",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/coins/transactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["coins", "transactions"]
+            }
+          }
+        },
+        {
+          "name": "Purchase Coin Package (Idempotent)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Idempotency-Key", "value": "coin_purchase_txn_001" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"packageId\": \"pkg_coins_500\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/coins/purchase",
+              "host": ["{{baseUrl}}"],
+              "path": ["coins", "purchase"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Subscriptions & Free Trial",
+      "item": [
+        {
+          "name": "Get Subscription Status & Plans",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/subscription",
+              "host": ["{{baseUrl}}"],
+              "path": ["subscription"]
+            }
+          }
+        },
+        {
+          "name": "Claim 3-Day Free Trial (1-Time Check)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/subscription/trial/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["subscription", "trial", "start"]
+            }
+          }
+        },
+        {
+          "name": "Purchase Premium Subscription (Idempotent)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Idempotency-Key", "value": "sub_purchase_001" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planId\": \"plan_monthly_pro\",\n  \"paymentRef\": \"PAY_REF_STRIPE_123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/subscription/purchase",
+              "host": ["{{baseUrl}}"],
+              "path": ["subscription", "purchase"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Notifications",
+      "item": [
+        {
+          "name": "List User Notifications",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"]
+            }
+          }
+        },
+        {
+          "name": "Create Notification",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"notif_trial_02\",\n  \"title\": \"Exclusive Autumn Capsule Preview 🍂\",\n  \"body\": \"Discover 12 curated looks tailored to your warm undertones and tailored fit.\",\n  \"type\": \"RECOMMENDATION\",\n  \"data\": { \"capsuleId\": \"autumn_2026\" }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"]
+            }
+          }
+        },
+        {
+          "name": "Mark Single Notification as Read",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/notif_trial_02/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "notif_trial_02", "read"]
+            }
+          }
+        },
+        {
+          "name": "Mark All Notifications as Read",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/read-all",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "read-all"]
+            }
+          }
+        },
+        {
+          "name": "Delete Single Notification",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/notif_welcome_01",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "notif_welcome_01"]
+            }
+          }
+        },
+        {
+          "name": "Clear All Notifications",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "13. Payments & Webhooks",
+      "item": [
+        {
+          "name": "Payment Webhook Simulation (Idempotent)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Idempotency-Key", "value": "webhook_event_evt_99812" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventType\": \"PAYMENT_SUCCESS\",\n  \"userId\": \"test_user_uid_12345\",\n  \"amount\": 7.99,\n  \"currency\": \"USD\",\n  \"paymentId\": \"pay_evt_stripe_99812\",\n  \"metadata\": {\n    \"type\": \"COINS\",\n    \"packageId\": \"pkg_coins_500\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payments/webhook",
+              "host": ["{{baseUrl}}"],
+              "path": ["payments", "webhook"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

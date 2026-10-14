@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Core user document and general profile/preferences
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      match /profile/{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /preferences/{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /wardrobe/{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /planner/{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /recentPicks/{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /favorites/{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /aiStyledLooks/{document=**} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        // Writes handled via backend API to validate AI ownership
+        allow write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /notifications/{document=**} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow update: if request.auth != null && request.auth.uid == userId; // mark read
+        allow delete: if request.auth != null && request.auth.uid == userId;
+        allow create: if false; // Only backend service can create notifications
+      }
+
+      // SENSITIVE COLLECTIONS: Read-only for Flutter client, only backend can write!
+      match /coins/{document=**} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if false; // Modifiable strictly via TryFit Backend APIs
+      }
+
+      match /coinTransactions/{document=**} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if false; // Ledger is append-only via TryFit Backend
+      }
+
+      match /subscription/{document=**} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if false; // Premium status is strictly authoritative from backend
+      }
+
+      match /tryons/{document=**} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if false; // Generated strictly via backend TryOnCloud proxy
+      }
+    }
+  }
+}

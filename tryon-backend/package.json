@@ -1,0 +1,32 @@
+{
+  "name": "tryon-backend",
+  "version": "1.0.0",
+  "description": "TryFit centralized cloud backend service with Firebase Admin, TryOnCloud proxy, Coins, and AI styling",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node tests/integration_test.js",
+    "seed": "node seed.js",
+    "postman:seed": "node run_postman_with_seed.js",
+    "migrate": "node src/db/migrate.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "axios": "^1.20.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.1",
+    "firebase-admin": "^14.5.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.4.0",
+    "mysql2": "^3.14.1",
+    "uuid": "^14.0.3"
+  }
+}
