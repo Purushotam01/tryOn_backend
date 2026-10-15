@@ -1,8 +1,13 @@
 const notificationsService = require('../services/notifications.service');
 
+/**
+ * Notifications Controller
+ * Handles HTTP requests for Notifications & Profile Notification settings.
+ */
+
 async function listNotifications(req, res, next) {
   try {
-    const notifications = await notificationsService.listNotifications(req.user.uid);
+    const notifications = await notificationsService.listNotifications(req.user.uid, req.query);
     return res.success(notifications);
   } catch (error) {
     next(error);
@@ -11,14 +16,7 @@ async function listNotifications(req, res, next) {
 
 async function createNotification(req, res, next) {
   try {
-    const { id, title, body, type, data } = req.body;
-    const notification = await notificationsService.createNotification(req.user.uid, {
-      id,
-      title,
-      body,
-      type,
-      data,
-    });
+    const notification = await notificationsService.createNotification(req.user.uid, req.body);
     return res.success(notification, 'Notification created', 201);
   } catch (error) {
     next(error);
@@ -27,8 +25,8 @@ async function createNotification(req, res, next) {
 
 async function markAsRead(req, res, next) {
   try {
-    await notificationsService.markAsRead(req.user.uid, req.params.id);
-    return res.success({ id: req.params.id }, 'Notification marked as read');
+    const result = await notificationsService.markAsRead(req.user.uid, req.params.id);
+    return res.success(result, 'Notification marked as read');
   } catch (error) {
     next(error);
   }
@@ -36,8 +34,8 @@ async function markAsRead(req, res, next) {
 
 async function markAllAsRead(req, res, next) {
   try {
-    await notificationsService.markAllAsRead(req.user.uid);
-    return res.success(null, 'All notifications marked as read');
+    const result = await notificationsService.markAllAsRead(req.user.uid);
+    return res.success(result, 'All notifications marked as read');
   } catch (error) {
     next(error);
   }
@@ -45,8 +43,8 @@ async function markAllAsRead(req, res, next) {
 
 async function deleteNotification(req, res, next) {
   try {
-    await notificationsService.deleteNotification(req.user.uid, req.params.id);
-    return res.success({ id: req.params.id }, 'Notification deleted');
+    const result = await notificationsService.deleteNotification(req.user.uid, req.params.id);
+    return res.success(result, 'Notification deleted');
   } catch (error) {
     next(error);
   }
@@ -54,8 +52,26 @@ async function deleteNotification(req, res, next) {
 
 async function clearAllNotifications(req, res, next) {
   try {
-    await notificationsService.clearAllNotifications(req.user.uid);
-    return res.success(null, 'All notifications cleared');
+    const result = await notificationsService.clearAllNotifications(req.user.uid);
+    return res.success(result, 'All notifications cleared');
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function getNotificationSettings(req, res, next) {
+  try {
+    const settings = await notificationsService.getNotificationSettings(req.user.uid);
+    return res.success(settings);
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function updateNotificationSettings(req, res, next) {
+  try {
+    const settings = await notificationsService.updateNotificationSettings(req.user.uid, req.body);
+    return res.success(settings, 'Notification settings updated');
   } catch (error) {
     next(error);
   }
@@ -68,4 +84,6 @@ module.exports = {
   markAllAsRead,
   deleteNotification,
   clearAllNotifications,
+  getNotificationSettings,
+  updateNotificationSettings,
 };
