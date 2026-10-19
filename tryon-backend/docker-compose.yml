@@ -1,0 +1,81 @@
+services:
+  # ----------------------------------------------------------------------------
+  # TryFit Express Backend API Service
+  # ----------------------------------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tryfit-backend
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=3000
+      # MySQL Database Configuration (Connecting via Docker internal DNS)
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=${MYSQL_USER:-tryon_app}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-TryonApp@2026#Dev}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-tryfit_db}
+      # JWT Authentication
+      - JWT_SECRET=${JWT_SECRET:-75660e30f496b4719a672a603cb769411506997e0463c5eb5a1daa0b2197c2e4}
+      # MSG91 OTP Configuration
+      - MSG91_AUTH_KEY=${MSG91_AUTH_KEY:-}
+      - MSG91_TEMPLATE_ID=${MSG91_TEMPLATE_ID:-699c5dfcdb9e18297e026415}
+      - MSG91_OTP_LENGTH=${MSG91_OTP_LENGTH:-4}
+      # Firebase Admin SDK Configuration
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID:-}
+      - FIREBASE_CLIENT_EMAIL=${FIREBASE_CLIENT_EMAIL:-}
+      - FIREBASE_PRIVATE_KEY=${FIREBASE_PRIVATE_KEY:-}
+      - FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET:-}
+      # Virtual Try-On & AI Provider
+      - TRYONCLOUD_API_KEY=${TRYONCLOUD_API_KEY:-}
+      - AI_PROVIDER_API_KEY=${AI_PROVIDER_API_KEY:-}
+      # Payment Gateway
+      - PAYMENT_SECRET_KEY=${PAYMENT_SECRET_KEY:-}
+      - PAYMENT_WEBHOOK_SECRET=${PAYMENT_WEBHOOK_SECRET:-}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - tryfit-network
+
+  # ----------------------------------------------------------------------------
+  # MySQL Database Service
+  # ----------------------------------------------------------------------------
+  mysql:
+    image: mysql:8.0
+    container_name: tryfit-mysql
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root_password_dev_123}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-tryfit_db}
+      - MYSQL_USER=${MYSQL_USER:-tryon_app}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-TryonApp@2026#Dev}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./src/db/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u $${MYSQL_USER} --password=$${MYSQL_PASSWORD} || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 25s
+    networks:
+      - tryfit-network
+
+# ------------------------------------------------------------------------------
+# Persistent Volumes & Network Definitions
+# ------------------------------------------------------------------------------
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  tryfit-network:
+    driver: bridge
