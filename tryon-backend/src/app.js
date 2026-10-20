@@ -14,10 +14,10 @@ testConnection();
 
 // Pre-seed test user data in local in-memory mode for instant Postman testing
 const { isFirebaseConfigured } = require('./config/firebase.config');
-if (!isFirebaseConfigured) {
+if (!isFirebaseConfigured && process.env.NODE_ENV !== 'production') {
   try {
     const { seedDatabase } = require('../seed');
-    seedDatabase('test_user_uid_12345').catch(() => {});
+    seedDatabase('test_user_uid_12345').catch(() => { });
   } catch (e) {
     // ignore
   }
