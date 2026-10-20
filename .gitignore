@@ -1,0 +1,24 @@
+# Environment files and secrets (keep templates tracked)
+.env
+.env.*
+!.env.example
+!.env.docker.example
+tryon-backend/.env
+tryon-backend/.env.*
+!tryon-backend/.env.example
+!tryon-backend/.env.docker.example
+
+# Dependencies
+node_modules/
+tryon-backend/node_modules/
+
+# Logs and runtime artifacts
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# OS and Editor artifacts
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
