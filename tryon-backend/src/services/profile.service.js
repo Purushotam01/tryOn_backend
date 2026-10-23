@@ -1,5 +1,4 @@
-const { db } = require('../config/firebase.config');
-const { getUserDoc, setUserDoc, getSubdoc, setSubdoc } = require('./firebase.service');
+const { getUserDoc, setUserDoc, getSubdoc, setSubdoc, getSubcollectionDocs } = require('./firebase.service');
 
 /**
  * Normalizes and formats the Profile response according to UI expectations.
@@ -494,30 +493,28 @@ async function updatePalettePreferences(uid, paletteData = {}) {
  * - For You / AI Match
  */
 async function getProfileStats(uid) {
-  const wardrobeSnap = await db.collection('users').doc(uid).collection('wardrobe').get();
-  const styledLooksSnap = await db.collection('users').doc(uid).collection('aiStyledLooks').get();
-  const matchHistorySnap = await db.collection('users').doc(uid).collection('aiMatchHistory').get();
-  const favoritesSnap = await db.collection('users').doc(uid).collection('favorites').get();
-  const plannerSnap = await db.collection('users').doc(uid).collection('planner').get();
+  const [wardrobe, styledLooks, matchHistory, favorites, planner] = await Promise.all([
+    getSubcollectionDocs(uid, 'wardrobe'),
+    getSubcollectionDocs(uid, 'aiStyledLooks'),
+    getSubcollectionDocs(uid, 'aiMatchHistory'),
+    getSubcollectionDocs(uid, 'favorites'),
+    getSubcollectionDocs(uid, 'planner'),
+  ]);
 
-  let wardrobeFavCount = 0;
-  if (wardrobeSnap && wardrobeSnap.docs) {
-    wardrobeFavCount = wardrobeSnap.docs.filter((d) => {
-      const data = typeof d.data === 'function' ? d.data() : d;
-      return data && (data.isFavorite === true || data.favorite === true);
-    }).length;
-  }
-  const favoritesCount = Math.max(favoritesSnap.size || 0, wardrobeFavCount);
+  const wardrobeFavCount = wardrobe.filter(
+    (item) => item && (item.isFavorite === true || item.favorite === true)
+  ).length;
+  const favoritesCount = Math.max(favorites.length, wardrobeFavCount);
 
   return {
-    wardrobeCount: wardrobeSnap.size || 0,
-    outfitsCount: styledLooksSnap.size || 0,
-    aiMatchCount: matchHistorySnap.size || 0,
-    forYouCount: matchHistorySnap.size || 0,
+    wardrobeCount: wardrobe.length,
+    outfitsCount: styledLooks.length,
+    aiMatchCount: matchHistory.length,
+    forYouCount: matchHistory.length,
     favoriteCount: favoritesCount,
-    favoritesCount: favoritesCount,
+    favoritesCount,
     favoriteClothesCount: wardrobeFavCount || favoritesCount,
-    plannerCount: plannerSnap.size || 0,
+    plannerCount: planner.length,
   };
 }
 

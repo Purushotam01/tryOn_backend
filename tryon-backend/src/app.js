@@ -12,16 +12,9 @@ const app = express();
 // Test optional MySQL connection
 testConnection();
 
-// Pre-seed test user data in local in-memory mode for instant Postman testing
+// NOTE: Demo data seeding is intentionally NOT run automatically on startup.
+// To seed a test user for local development, run: npm run seed
 const { isFirebaseConfigured } = require('./config/firebase.config');
-if (!isFirebaseConfigured && process.env.NODE_ENV !== 'production') {
-  try {
-    const { seedDatabase } = require('../seed');
-    seedDatabase('test_user_uid_12345').catch(() => { });
-  } catch (e) {
-    // ignore
-  }
-}
 
 // Global Security & Parsing Middleware
 app.use(cors());

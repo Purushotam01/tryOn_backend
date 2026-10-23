@@ -54,7 +54,7 @@ async function authenticateUser(req, res, next) {
             [uid, email, displayName, email, displayName]
           );
         } catch (dbErr) {
-          // Non-fatal: Firestore-backed features continue to work without MySQL.
+          // Non-fatal: valid Google authentication must not fail solely because MySQL is temporarily unavailable.
           // Log enough detail to diagnose issues without exposing credentials or tokens.
           console.warn(
             '[Auth] MySQL upsert failed for Google user — code: %s, message: %s',

@@ -8,9 +8,12 @@
     "dev": "node --watch server.js",
     "test": "node tests/integration_test.js",
     "test:otp": "node tests/test_otp.js",
+    "test:google": "node tests/test_google_auth.js",
+    "test:auth": "node tests/test_google_auth.js",
     "seed": "node seed.js",
     "postman:seed": "node run_postman_with_seed.js",
-    "migrate": "node src/db/migrate.js"
+    "migrate": "node src/db/migrate.js",
+    "test:mysql-documents": "node tests/test_mysql_document_store.js"
   },
   "keywords": [],
   "author": "",

@@ -17,10 +17,10 @@ services:
       - MYSQL_HOST=mysql
       - MYSQL_PORT=3306
       - MYSQL_USER=${MYSQL_USER:-tryon_app}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-TryonApp@2026#Dev}
-      - MYSQL_DATABASE=${MYSQL_DATABASE:-tryfit_db}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-tryon_db}
       # JWT Authentication
-      - JWT_SECRET=${JWT_SECRET:-75660e30f496b4719a672a603cb769411506997e0463c5eb5a1daa0b2197c2e4}
+      - JWT_SECRET=${JWT_SECRET:-}
       # MSG91 OTP Configuration
       - MSG91_AUTH_KEY=${MSG91_AUTH_KEY:-}
       - MSG91_TEMPLATE_ID=${MSG91_TEMPLATE_ID:-699c5dfcdb9e18297e026415}
@@ -51,10 +51,10 @@ services:
     restart: unless-stopped
     command: --default-authentication-plugin=mysql_native_password
     environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root_password_dev_123}
-      - MYSQL_DATABASE=${MYSQL_DATABASE:-tryfit_db}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-tryon_db}
       - MYSQL_USER=${MYSQL_USER:-tryon_app}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-TryonApp@2026#Dev}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-}
     ports:
       - "${MYSQL_PORT:-3306}:3306"
     volumes:

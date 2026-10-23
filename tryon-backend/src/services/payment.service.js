@@ -27,7 +27,7 @@ async function processPaymentEvent(event) {
     throw new Error('userId is missing in payment event');
   }
 
-  // Record payment in Firestore
+  // Record payment in MySQL
   const paymentRecord = {
     paymentId: paymentId || `pay_${Date.now()}`,
     userId,

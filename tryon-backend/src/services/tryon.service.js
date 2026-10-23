@@ -10,7 +10,7 @@ const { COIN_COSTS } = require('../config/pricing.config');
  * 1. Deducts required coins (10 coins)
  * 2. Calls TryOnCloud API securely with hidden API key
  * 3. Downloads result and uploads to Firebase Storage
- * 4. Saves record in Firestore (users/{uid}/tryons/{id})
+ * 4. Saves record in MySQL (user_documents)
  */
 
 async function executeVirtualTryOn(uid, { personImage, clothingImage, category = 'upper_body' }) {

@@ -128,3 +128,13 @@ Deploy the included security rules directly to your Firebase project:
 firebase deploy --only firestore:rules,storage
 ```
 Sensitive collections (`coins`, `coinTransactions`, `subscription`, `tryons`) are marked **read-only** for clients in Firestore, ensuring coins and premium access cannot be spoofed from mobile client modifications.
+
+---
+
+## 🗄️ Application Data Storage (MySQL)
+
+- Application records (profiles, preferences, wardrobe, favorites, planner, notifications, AI records, coins, subscriptions, and payment metadata) are stored in MySQL in the `user_documents` table. The JSON payload preserves the existing document shapes and API contracts.
+- Firebase is retained for Google ID-token verification and Firebase Storage file uploads only. Runtime code does not initialize or read/write Firestore.
+- Run `npm run migrate` (`node src/db/migrate.js`) to create or align the `users` and `user_documents` tables safely and idempotently.
+- If existing user records are still in Firestore, optionally run `node src/db/migrate-firestore-data.js` once after taking backups. This one-time import uses `INSERT IGNORE` (does not overwrite existing MySQL records and does not delete Firestore data).
+- The MySQL document adapter unit test can be run with `npm run test:mysql-documents`.
