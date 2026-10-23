@@ -61,9 +61,10 @@ async function verifyOtp(req, res) {
 
         const result = await verifyOTP(phone, otp);
 
-        let user = { id: phone, phone, name: null, role: 'user' };
+        const isProduction = process.env.NODE_ENV === 'production';
+        let user = null;
 
-        // Upsert user if MySQL is available
+        // Upsert and retrieve authoritative user from MySQL
         try {
             await pool.execute(
                 `INSERT INTO users (phone, is_verified) VALUES (?, TRUE)
@@ -71,7 +72,7 @@ async function verifyOtp(req, res) {
                 [phone]
             );
 
-            // Fetch the user to get their id and role for the JWT
+            // Fetch the user to get their authoritative id and role for the JWT
             const [users] = await pool.execute(
                 'SELECT id, phone, name, role FROM users WHERE phone = ?',
                 [phone]
@@ -79,9 +80,29 @@ async function verifyOtp(req, res) {
 
             if (users && users.length > 0) {
                 user = users[0];
+            } else {
+                throw new Error('Persisted user record not found after upsert');
             }
         } catch (dbError) {
-            console.warn('MySQL user upsert skipped (DB unavailable):', dbError.message);
+            console.error('[OTP Persistence] MySQL user upsert/lookup failed:', dbError.message);
+
+            if (isProduction) {
+                return res.status(503).json({
+                    message: 'Authentication service temporarily unavailable. Please try again shortly.',
+                    code: 'DB_UNAVAILABLE',
+                });
+            }
+
+            // Non-production fallback only when not in production
+            console.warn('[OTP Persistence] Using development fallback identity (non-production mode)');
+            user = { id: phone, phone, name: null, role: 'user' };
+        }
+
+        if (!user || (isProduction && user.id === phone)) {
+            return res.status(503).json({
+                message: 'Authentication service temporarily unavailable. Please try again shortly.',
+                code: 'DB_UNAVAILABLE',
+            });
         }
 
         // Issue JWT
