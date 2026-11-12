@@ -6,7 +6,7 @@ const keyOf = (uid, collection, id) => `${uid}|${collection}|${id}`;
 const fakePool = {
   async execute(sql, params) {
     if (sql.includes('FROM users WHERE id = ?') && params[0] === 42) {
-      return [[{ id: 42, firebase_uid: null, phone: '919876543210', name: 'Original Name', email: 'otp@tryfit.app', role: 'user', created_at: new Date(), updated_at: new Date() }]];
+      return [[{ id: 42, firebase_uid: null, phone: '919876543210', name: 'Original Name', email: 'legacy@tryfit.app', role: 'user', created_at: new Date(), updated_at: new Date() }]];
     }
     if (sql.includes('FROM users WHERE')) return [[]];
     if (sql.includes('UPDATE users SET')) return [{ affectedRows: 0 }];
@@ -83,12 +83,12 @@ const store = require('../src/services/firebase.service');
   await store.setUserDoc('u1', { name: 'Test User' });
   assert.strictEqual((await store.getUserDoc('u1')).name, 'Test User');
 
-  // Verify identity preservation for OTP user: updating name does not erase phone/email
-  await store.setUserDoc('42', { name: 'New OTP Name' });
-  const otpUserDoc = await store.getUserDoc('42');
-  assert.strictEqual(otpUserDoc.name, 'New OTP Name');
-  assert.strictEqual(otpUserDoc.phone, '919876543210', 'Phone number must be preserved from users table');
-  assert.strictEqual(otpUserDoc.email, 'otp@tryfit.app', 'Email must be preserved from users table');
+  // Verify identity preservation for legacy numeric-id user: updating name does not erase phone/email
+  await store.setUserDoc('42', { name: 'Updated Legacy Name' });
+  const legacyUserDoc = await store.getUserDoc('42');
+  assert.strictEqual(legacyUserDoc.name, 'Updated Legacy Name');
+  assert.strictEqual(legacyUserDoc.phone, '919876543210', 'Phone number must be preserved from users table');
+  assert.strictEqual(legacyUserDoc.email, 'legacy@tryfit.app', 'Email must be preserved from users table');
 
   await store.deleteSubdoc('u1', 'wardrobe', 'item1');
   assert.strictEqual(await store.getSubdoc('u1', 'wardrobe', 'item1'), null);

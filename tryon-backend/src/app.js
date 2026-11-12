@@ -28,9 +28,6 @@ app.use(responseEnhancer);
 // API v1 Routes (TryFit Cloud Backend)
 app.use('/api/v1', require('./routes/api.routes'));
 
-// Legacy/Optional OTP Routes
-app.use('/api/otp', require('./routes/otp.routes'));
-
 // 404 Handler
 app.use((req, res) => {
   res.fail(`Route not found: ${req.method} ${req.originalUrl}`, 'NOT_FOUND', 404);

@@ -1,8 +1,8 @@
 /**
- * MySQL Persistence Tests — OTP & Google Login
+ * MySQL Persistence Tests — Google Login & User Schema Constraints
  *
  * Tests MySQL persistence logic directly without a running HTTP server,
- * Firestore, MSG91, or real Firebase tokens. Uses isolated identities
+ * Firestore, or real Firebase tokens. Uses isolated identities
  * and cleans up all test rows at the end.
  *
  * Run: node tests/test_mysql_persistence.js
@@ -39,7 +39,7 @@ async function cleanupTestData(connection) {
 
 async function runTests() {
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('  MySQL Persistence Tests (OTP + Google Login)');
+  console.log('  MySQL Persistence Tests (Google Login)');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
   conn = await mysql.createConnection({
@@ -52,46 +52,6 @@ async function runTests() {
 
   // Pre-test: ensure no leftover test data
   await cleanupTestData(conn);
-
-  // ─── OTP Login Tests ──────────────────────────────────────────
-
-  console.log('[ OTP Login ]');
-
-  // 1. First OTP login creates a new row
-  await conn.execute(
-    `INSERT INTO users (phone, is_verified)
-     VALUES (?, TRUE)
-     ON DUPLICATE KEY UPDATE is_verified = TRUE, updated_at = CURRENT_TIMESTAMP`,
-    [TEST_PHONE]
-  );
-  const [[otpUser1]] = await conn.execute(
-    'SELECT id, phone, firebase_uid, is_verified, role FROM users WHERE phone = ?',
-    [TEST_PHONE]
-  );
-  assert(otpUser1 !== undefined,            'OTP first login — row created');
-  assert(otpUser1?.phone === TEST_PHONE,    'OTP first login — phone stored correctly');
-  assert(otpUser1?.is_verified === 1,       'OTP first login — is_verified = TRUE');
-  assert(otpUser1?.firebase_uid === null,   'OTP first login — firebase_uid is NULL');
-  assert(otpUser1?.role === 'user',         'OTP first login — role defaults to user');
-  const otpUserId = otpUser1?.id;
-
-  // 2. Repeat OTP login updates same row (no duplicate)
-  await conn.execute(
-    `INSERT INTO users (phone, is_verified)
-     VALUES (?, TRUE)
-     ON DUPLICATE KEY UPDATE is_verified = TRUE, updated_at = CURRENT_TIMESTAMP`,
-    [TEST_PHONE]
-  );
-  const [[countOtp]] = await conn.execute(
-    'SELECT COUNT(*) AS cnt FROM users WHERE phone = ?',
-    [TEST_PHONE]
-  );
-  assert(countOtp.cnt === 1,               'OTP repeat login — no duplicate row created');
-
-  const [[otpUser2]] = await conn.execute(
-    'SELECT id FROM users WHERE phone = ?', [TEST_PHONE]
-  );
-  assert(otpUser2?.id === otpUserId,       'OTP repeat login — same row (id unchanged)');
 
   // ─── Google Login Tests ───────────────────────────────────────
 
@@ -140,21 +100,15 @@ async function runTests() {
   );
   assert(googleUser2?.id === googleUserId, 'Google repeat login — same row (id unchanged)');
 
-  // ─── Identity Isolation Tests ─────────────────────────────────
+  // ─── Phone Contact & Constraint Tests ────────────────────────
 
-  console.log('\n[ Identity Isolation ]');
+  console.log('\n[ Phone Constraint & Invalid Input Rejection ]');
 
-  // 5. OTP and Google users are separate rows
-  const [[totalCount]] = await conn.execute(
-    'SELECT COUNT(*) AS cnt FROM users WHERE phone = ? OR firebase_uid = ?',
-    [TEST_PHONE, TEST_FIREBASE_UID]
+  // 5. Existing phone record stored independently alongside Google user
+  await conn.execute(
+    `INSERT INTO users (phone, firebase_uid, is_verified) VALUES (?, ?, TRUE)`,
+    [TEST_PHONE, 'test-firebase-uid-phone-holder-001']
   );
-  assert(totalCount.cnt === 2,             'OTP and Google users stored as separate rows');
-  assert(otpUserId !== googleUserId,       'OTP and Google users have different MySQL IDs');
-
-  // ─── Invalid Input Tests ──────────────────────────────────────
-
-  console.log('\n[ Invalid Input Rejection ]');
 
   // 6. Duplicate phone rejected (constraint violation)
   try {

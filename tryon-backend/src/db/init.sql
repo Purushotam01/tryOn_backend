@@ -2,13 +2,12 @@
 -- TryFit Backend Database Initialization
 -- ============================================
 
--- Users table (OTP + Google Sign-In authentication)
+-- Users table (Google Sign-In authentication & user profiles)
 -- Executed in the context of the configured MYSQL_DATABASE (default: tryon_db)
 --
 -- Identity columns:
---   phone       — set for OTP/phone-verified users; NULL for Google-only users.
---   firebase_uid — set for Google Sign-In users; NULL for OTP-only users.
---   At least one of phone or firebase_uid must be present for a valid user.
+--   firebase_uid — set for Google Sign-In users (NULL only for legacy rows).
+--   phone        — optional contact/legacy phone field (NULL allowed).
 CREATE TABLE IF NOT EXISTS users (
     id           INT AUTO_INCREMENT PRIMARY KEY,
     firebase_uid VARCHAR(128) DEFAULT NULL,

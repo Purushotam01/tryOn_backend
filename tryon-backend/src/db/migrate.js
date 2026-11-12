@@ -6,12 +6,12 @@
  * Safety Guarantees:
  * 1. Strictly additive & non-destructive: never DROPs, TRUNCATEs, or overwrites tables/columns/rows.
  * 2. Uses process.env.MYSQL_DATABASE (validated against alphanumeric/underscore characters).
- * 3. If 'users' table is missing, creates it with dual-auth schema (OTP + Google Sign-In).
+ * 3. If 'users' table is missing, creates it with Google Sign-In schema (and legacy-compatible columns).
  * 4. If 'users' table exists, inspects information_schema and adds only genuinely missing columns.
  * 5. Checks for duplicate phone/firebase_uid values before adding UNIQUE indexes.
  * 6. Preserves existing 'email', 'password', and other legacy columns untouched.
- * 7. Reports any NOT NULL constraints that could conflict with OTP/Google registration.
- * 8. phone is nullable: OTP users supply a phone; Google-only users may have none.
+ * 7. Reports any NOT NULL constraints that could conflict with Google registration.
+ * 8. phone is nullable: contact/legacy field; Google users may have none.
  * 9. firebase_uid is nullable and unique: Google Sign-In users are keyed by Firebase UID.
  */
 
@@ -49,8 +49,8 @@ async function migrate() {
         );
 
         if (tableRows.length === 0) {
-            // Fresh installation: create users table cleanly with dual-auth schema.
-            // phone   - nullable: OTP users supply a phone; Google-only users may have none.
+            // Fresh installation: create users table cleanly.
+            // phone   - nullable: optional contact/legacy phone field.
             // firebase_uid - nullable, unique: Google Sign-In users are keyed by Firebase UID.
             console.log(`[Migration] Table 'users' does not exist in '${targetDb}'. Creating table...`);
             await connection.query(`
@@ -87,7 +87,7 @@ async function migrate() {
 
             console.log(`[Migration] Existing columns in 'users': [${Array.from(columnMap.keys()).join(', ')}]`);
 
-            // Add missing OTP-required columns non-destructively
+            // Add missing backward-compatible user columns non-destructively
             if (!columnMap.has('phone')) {
                 console.log(`[Migration] Adding missing column 'phone' (NULL default for existing row safety)...`);
                 await connection.query(`ALTER TABLE users ADD COLUMN phone VARCHAR(15) DEFAULT NULL;`);
@@ -120,7 +120,6 @@ async function migrate() {
             }
 
             // Ensure phone allows NULL so Google-only users (no phone) can be stored.
-            // OTP inserts always supply a phone value, so this is backward-compatible.
             const phoneColDef = columnMap.get('phone');
             if (phoneColDef && phoneColDef.IS_NULLABLE === 'NO') {
                 console.log(`[Migration] Modifying 'phone' column to allow NULL (required for Google-only users)...`);
@@ -175,7 +174,7 @@ async function migrate() {
                 console.log(`[Migration] Unique index on 'firebase_uid' already exists.`);
             }
 
-            // Inspect existing NOT NULL constraints for potential OTP conflict
+            // Inspect existing NOT NULL constraints for potential registration conflict
             const problematicCols = [];
             for (const col of existingColumns) {
                 const name = col.COLUMN_NAME.toLowerCase();
@@ -188,7 +187,7 @@ async function migrate() {
 
             if (problematicCols.length > 0) {
                 console.warn(`⚠️ [Migration] Schema warning: Column(s) [${problematicCols.join(', ')}] are NOT NULL without a DEFAULT value.`);
-                console.warn(`⚠️ [Migration] If live database has legacy required fields, OTP registration inserts omitting these columns will require defaults.`);
+                console.warn(`⚠️ [Migration] If live database has legacy required fields, registration inserts omitting these columns will require defaults.`);
                 console.warn(`⚠️ [Migration] Preserving existing constraints untouched per safety rules.`);
             }
 

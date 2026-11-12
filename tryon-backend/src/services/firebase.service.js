@@ -64,7 +64,7 @@ async function getUserDoc(uid) {
     docData = decodeData(documentRows[0].data);
   }
 
-  // 2. Fetch canonical user row from MySQL users table (supports both Google firebase_uid and OTP numeric id)
+  // 2. Fetch canonical user row from MySQL users table (supports both Google firebase_uid and legacy numeric id)
   let userRow = null;
   const [googleRows] = await pool.execute(
     `SELECT id, firebase_uid, phone, name, email, role, created_at, updated_at
@@ -74,13 +74,13 @@ async function getUserDoc(uid) {
   if (googleRows.length) {
     userRow = googleRows[0];
   } else if (/^\d+$/.test(String(uid))) {
-    const [otpRows] = await pool.execute(
+    const [idRows] = await pool.execute(
       `SELECT id, firebase_uid, phone, name, email, role, created_at, updated_at
        FROM users WHERE id = ? LIMIT 1`,
       [Number(uid)]
     );
-    if (otpRows.length) {
-      userRow = otpRows[0];
+    if (idRows.length) {
+      userRow = idRows[0];
     }
   }
 

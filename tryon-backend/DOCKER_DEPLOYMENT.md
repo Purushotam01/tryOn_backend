@@ -17,7 +17,7 @@ The TryFit Backend is a **Node.js (Express)** microservice designed for high thr
 
 2. **Persistence Strategy:**
    - **Primary Cloud Store:** Firebase Admin SDK (Firestore & Firebase Storage) with an in-memory fallback for offline/local development.
-   - **Relational DB:** MySQL 8.0 for phone/OTP authentication, user profiles, and JWT issuance.
+   - **Relational DB:** MySQL 8.0 for user accounts, user profiles, and application document persistence.
 
 ---
 
@@ -105,10 +105,6 @@ docker run -d \
   -e MYSQL_USER=admin \
   -e MYSQL_PASSWORD=your_password \
   -e MYSQL_DATABASE=tryfit_db \
-  -e JWT_SECRET=your_jwt_secret \
-  -e MSG91_AUTH_KEY=494005ARXlclyD699be6d8P1 \
-  -e MSG91_TEMPLATE_ID=699c5dfcdb9e18297e026415 \
-  -e MSG91_OTP_LENGTH=4 \
   -e FIREBASE_PROJECT_ID=your-project-id \
   -e FIREBASE_CLIENT_EMAIL=your-service-account-email \
   -e FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..." \

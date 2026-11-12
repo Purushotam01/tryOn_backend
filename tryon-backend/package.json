@@ -7,7 +7,6 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "test": "node tests/integration_test.js",
-    "test:otp": "node tests/test_otp.js",
     "test:google": "node tests/test_google_auth.js",
     "test:auth": "node tests/test_google_auth.js",
     "seed": "node seed.js",
@@ -28,7 +27,6 @@
     "express-rate-limit": "^8.7.1",
     "firebase-admin": "^14.5.0",
     "helmet": "^8.1.0",
-    "jsonwebtoken": "^9.0.3",
     "multer": "^2.4.0",
     "mysql2": "^3.14.1",
     "uuid": "^14.0.3"

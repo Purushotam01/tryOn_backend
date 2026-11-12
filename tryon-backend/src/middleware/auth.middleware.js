@@ -1,15 +1,13 @@
 const firebaseConfig = require('../config/firebase.config');
-const jwt = require('jsonwebtoken');
 const { pool } = require('../db/db');
 
 /**
  * Authentication Middleware:
  * 1. Checks 'Authorization: Bearer <token>' header.
  * 2. Primary (Production): Verifies Firebase ID Token for Google Sign-In users.
- * 3. Secondary (Production & Dev): Verifies HS256 JWT for MSG91 Phone OTP users.
- * 4. Local Dev Fallback: Allows mock/test tokens ONLY when Firebase is unconfigured.
- * 5. Injects req.user = { uid, email, phone, role }.
- * 6. Strips or rejects any untrusted userId sent in body or query parameters.
+ * 3. Local Dev Fallback: Allows mock/test tokens ONLY when Firebase is unconfigured.
+ * 4. Injects req.user = { uid, email, phone, role }.
+ * 5. Strips or rejects any untrusted userId sent in body or query parameters.
  */
 async function authenticateUser(req, res, next) {
   try {
@@ -63,31 +61,13 @@ async function authenticateUser(req, res, next) {
           );
         }
       } catch (fbError) {
-        // Token is not a valid Firebase ID token; proceed to check OTP JWT
+        // Token is not a valid Firebase ID token
       }
     }
 
-    // 2. Secondary: Verify OTP-issued JWT with JWT_SECRET (MSG91 Phone OTP login)
-    // Checked whenever uid is not yet resolved and JWT_SECRET is present
-    if (!uid && process.env.JWT_SECRET) {
-      try {
-        const decodedJwt = jwt.verify(token, process.env.JWT_SECRET, {
-          algorithms: ['HS256'],
-        });
-
-        // Enforce required claims (must have an id claim)
-        if (decodedJwt && decodedJwt.id !== undefined && decodedJwt.id !== null) {
-          uid = String(decodedJwt.id);
-          phone = decodedJwt.phone || null;
-          role = decodedJwt.role || 'user';
-        }
-      } catch (jwtError) {
-        // If the token is a structured JWT (3 dot-separated segments) that failed verification,
-        // reject immediately as invalid or expired (do not fall through to dev mock strings)
-        if (token.includes('.') && token.split('.').length === 3) {
-          return res.fail('Unauthorized: Invalid or expired token', 'UNAUTHORIZED', 401);
-        }
-      }
+    // 2. Reject structured JWTs that failed Firebase verification (do not fall through to dev mock strings)
+    if (!uid && token.includes('.') && token.split('.').length === 3) {
+      return res.fail('Unauthorized: Invalid or expired token', 'UNAUTHORIZED', 401);
     }
 
     // 3. Development / Test Fallback
